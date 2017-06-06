@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = 'E:/LINDSAY/expression arrays/all arrays') ## working directory for all R chunks
 ```
 
 ## Outline
@@ -16,11 +17,12 @@ Initial normalization based on Mattick Lab protocol, see
 
 1. normalize arrays  
 
-    a) load libraries, target file, annotations, and gene list load data into an RGList object  
-    b) assign spot types and set the status of each spot on the array  
-    c) subract background fluorescence  
-    d) normalize between arrays  
-    e) average replicate spots  
+    a) load libraries, target file, annotations, and gene list  
+    b) load data into an RGList object  
+    c) assign spot types and set the status of each spot on the array  
+    d) subract background fluorescence  
+    e) normalize between arrays  
+    f) average replicate spots  
  \ 
 2. applying linear model  
 
@@ -35,14 +37,56 @@ Initial normalization based on Mattick Lab protocol, see
 
 ### Load libraries
 
-Load the libraries you'll be using and set your working directory (where you want R to look for files and to save files).
+Load the libraries you'll be using.
 
-```{r}
+```{r libraries}
 library(limma)
-setwd("E:/LINDSAY/expression arrays/all arrays")
 ```
 
-### Load the arrays
+### Load target file
 
-Do this by first
+Load your target file containing SampleNumber, FileName, and Condition data. Make sure to include full filepath. In my target file each row is one sample and each column is one descriptor.
+
+```{r targets}
+targets <- readTargets(file = "targets.txt")
+names(targets) ## to view the column names
+```
+
+### Load annotations
+
+These annotations are what come from Agilent. Currently, they are Zv9 (danRer7) and should be queried against more updated releases of RefGene, ENTREZ, ENSEMBL, etc.
+
+```{r annotations}
+annotations <- read.csv("AllAnnotations.csv")
+names(annotations) ## to view the column names
+```
+
+### Load genelist
+
+The genelist is pretty much the same thing as annotations and also come from Agilent. Currently, they are Zv9 (danRer7) and should be queried against more updated releases of RefGene, ENTREZ, ENSEMBL, etc.
+
+```{r genelist}
+genelist <- read.delim2("E:/LINDSAY/expression arrays/all arrays/genelist_withcontrols.txt")
+## there is another file named "genelist.txt" that might also be appropriate
+names(genelist) ## to view the column names 
+```
+
+### Load array files
+
+Using read.maimages, load extracted array files (txt output from Agilent's Feature Extraction Program) as an EListRaw from a set of one-color files.
+
+```{r data, results = "hide"}
+a <- read.maimages(targets,
+                   source = "agilent", ## same as "agilent.median" other option is "agilent.mean"
+                   green.only = TRUE) ## need to identify if I need to do incorporate "Wt.fun" this
+```
+
+
+This takes a minute or two (depending on how many files you have to load). Then check how many arrays loaded.
+
+```{r data}
+dim(a)
+colnames(a)
+```
+
 
