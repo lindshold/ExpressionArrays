@@ -1,0 +1,48 @@
+---
+title: "Expression array normalization and analysis"
+author: "Lindsay A Holden"
+date: "June 6, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Outline
+
+Initial normalization based on Mattick Lab protocol, see  
+<http://matticklab.com/index.php?title=Single_channel_analysis_of_Agilent_microarray_data_with_Limma>  
+
+1. normalize arrays  
+
+    a) load libraries, target file, annotations, and gene list load data into an RGList object  
+    b) assign spot types and set the status of each spot on the array  
+    c) subract background fluorescence  
+    d) normalize between arrays  
+    e) average replicate spots  
+ \ 
+2. applying linear model  
+
+    a) create a design matrix for linear modeling function  
+    b) apply intensity values to lmFit (linear model)  
+    c) create contrast matrix for your comparison of interest  
+    d) apply contrast matrix to modeled data & compute statistics  
+    e) output stats  
+    f) annotate output  
+
+## Normalize arrays
+
+### Load libraries
+
+Load the libraries you'll be using and set your working directory (where you want R to look for files and to save files).
+
+```{r}
+library(limma)
+setwd("E:/LINDSAY/expression arrays/all arrays")
+```
+
+### Load the arrays
+
+Do this by first
+
