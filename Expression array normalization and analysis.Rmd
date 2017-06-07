@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = 'E:/LINDSAY/expression arrays/all arrays') ## working directory for all R chunks
+knitr::opts_knit$set(root.dir = "E:/LINDSAY/expression arrays/all arrays") ## working directory for all R chunks
 ```
 
 ## Outline
@@ -84,9 +84,26 @@ a <- read.maimages(targets,
 
 This takes a minute or two (depending on how many files you have to load). Then check how many arrays loaded.
 
-```{r data}
+```{r data dimensions}
 dim(a)
 colnames(a)
 ```
 
+### Assign spot types
+
+The SpotType file allows you to identify spots when visualizing sampels on plots to assess sample quality. First load the file, see what it contains, then assign the status of each spot on the array.
+
+```{r spottypes}
+spottypes <- readSpotTypes(file = "SpotType.txt",
+                           sep = "\t")
+names(spottypes)
+a$genes$Status <- controlStatus(spottypes, a)
+```
+
+### Visualize on an MA-plot
+
+For single channel data objects, a between-array MD-plot is produced. An articifial array is produced by averaging all the arrays other than the array specified. A mean-difference plot is then producing from the specified array and the artificial array. Note that this procedure reduces to an ordinary mean-difference plot when there are just two arrays total.
+
+plotMD(a, legend = FALSE)
+plotMA3by2(a)
 
