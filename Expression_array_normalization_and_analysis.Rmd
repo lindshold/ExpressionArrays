@@ -109,8 +109,7 @@ a <- read.maimages(targets,
                    wt.fun = myFlagFun)
 ```
 
-
-This takes a minute or two (depending on how many files you have to load). Then check how many arrays loaded.
+This takes a minute or two (depending on how many files you have to load, I have 162 here). Then check how many arrays loaded.
 
 ```{r data dimensions}
 dim(a)
@@ -156,7 +155,7 @@ For single channel data objects, a between-array MD-plot is produced. An articif
 
 ```{r plotMD}
 plotMD(a, legend = FALSE, cex = 0.1) ## uses the first array file vs all others
-plotMA3by2(a, path = "C:/Users/holdenl/Documents/ExpressionArrays/raw_MAplots") ## all arrays individually vs all others...will take a wee bit and prints out png files
+plotMA3by2(a, path = "C:/Users/holdenl/Documents/ExpressionArrays/raw_MAplots", cex = 0.1) ## all arrays individually vs all others...will take a wee bit and prints out png files
 ```
 
 ### Visualize background intensity boxplots
@@ -218,14 +217,14 @@ b.normexp.mle <- backgroundCorrect(RG = a,  method = "normexp", offset = 0, prin
 And we can then plot them all side by side.
 ```{r background comparisons}
 par(mfrow=c(3,3))
-plotMD(b.none, legend = FALSE, main = "none", cex = 0.1)
-plotMD(b.subtract, legend = FALSE, main = "subtract", cex = 0.1)
-plotMD(b.half, legend = FALSE, main = "half", cex = 0.1)
-plotMD(b.minimum, legend = FALSE, main = "minimum", cex = 0.1)
-plotMD(b.movingmin, legend = FALSE, main = "movingmin", cex = 0.1)
-plotMD(b.edwards, legend = FALSE, main = "edwards", cex = 0.1)
-plotMD(b.normexp.saddle, legend = FALSE, main = "normexp.saddle", cex = 0.1)
-plotMD(b.normexp.mle, legend = FALSE, main = "normexp.mle", cex = 0.1)
+plotMD(b.none, cex = 0.1, legend = FALSE, main = "none")
+plotMD(b.subtract, cex = 0.1, legend = FALSE, main = "subtract")
+plotMD(b.half, cex = 0.1, legend = FALSE, main = "half")
+plotMD(b.minimum, cex = 0.1, legend = FALSE, main = "minimum")
+plotMD(b.movingmin, cex = 0.1, legend = FALSE, main = "movingmin")
+plotMD(b.edwards, cex = 0.1, legend = FALSE, main = "edwards")
+plotMD(b.normexp.saddle, cex = 0.1, legend = FALSE, main = "normexp.saddle")
+plotMD(b.normexp.mle, cex = 0.1, legend = FALSE, main = "normexp.mle")
 ```
-Can't really tell the difference at this stage...
+Background correction methods "subtract" and "movingmin" both results w/ NaNs produced, which I believe means that they produce negative values. Can't really tell the difference at this stage...
 

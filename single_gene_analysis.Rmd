@@ -1,0 +1,22 @@
+---
+title: "cyp1a"
+author: "Lindsay A Holden"
+date: "June 8, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Pull out cyp1a, ahr2, and b-actin genes only
+
+Extracting cyp1a gene (3 probes) from raw and different background correction algorithms. Then I'll look at between array normalized data.
+
+###Raw
+```{r raw}
+cyp1a.raw <- data.frame(a$E[a$genes$GeneName == "cyp1a"])
+ahr2.raw <- a$E[which(a$genes$GeneName == "ahr2"),]
+actb1.raw <- a$E[which(a$genes$GeneName == "actb1")]
+```
+
