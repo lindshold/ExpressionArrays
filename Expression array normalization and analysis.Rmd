@@ -1,5 +1,5 @@
 ---
-title: "Expression array normalization and analysis"
+title: "Expression_array_normalization_and_analysis"
 author: "Lindsay A Holden"
 date: "June 7, 2017"
 output: html_document
