@@ -74,7 +74,7 @@ names(genelist) ## to view the column names
 
 First, define which spots you want to weight. Do this by writing a function that weights strongly positive spots as 1 and flagged spots as 0. We will apply this when we load the array files.
 
-```{r}
+```{r myFlagFun}
 myFlagFun <- function(x) {
 #Weight only strongly positive spots 1, everything else 0
 present <- x$gIsPosAndSignif == 1
@@ -121,7 +121,7 @@ colnames(a)
 
 a$genes had a ProbeID vector, but it only contains numbers at this point. We want to add human-readable probe IDs. These are found in the .gal file provided in the Agilent design file (026437). I dragged and dropped the .gal file into my directory.
 
-```{r}
+```{r gal}
 a$genes <- readGAL(galfile = "026437_D_20140627.gal",
                    path = "C:/Users/holdenl/Documents/ExpressionArrays")
 dim(a$genes)
@@ -132,7 +132,7 @@ names(a$genes)
 
 This is already loaded into our EListRaw. We have commerically produce Agilent arrays, so this shouldn't really matter, but we'll look at it anyway.
 
-```{r}
+```{r printer}
 names(a$printer)
 ```
 
@@ -154,8 +154,8 @@ a$genes$Status <- controlStatus(spottypes, a)
 
 For single channel data objects, a between-array MD-plot is produced. An articifial array is produced by averaging all the arrays other than the array specified. A mean-difference plot is then producing from the specified array and the artificial array. Note that this procedure reduces to an ordinary mean-difference plot when there are just two arrays total. 
 
-```{r}
-plotMD(a, legend = FALSE) ## uses the first array file vs all others
+```{r plotMD}
+plotMD(a, legend = FALSE, cex = 0.1) ## uses the first array file vs all others
 plotMA3by2(a, path = "C:/Users/holdenl/Documents/ExpressionArrays/raw_MAplots") ## all arrays individually vs all others...will take a wee bit and prints out png files
 ```
 
@@ -163,20 +163,69 @@ plotMA3by2(a, path = "C:/Users/holdenl/Documents/ExpressionArrays/raw_MAplots") 
 
 This allows for you to see if you have any weird outliers with abnormal background. If we color by "run", then we can see that 1st (black), 2nd (red), or 3rd (green) run aren't unequally affected by background spread.
 
-```{r}
+```{r bkgd by run}
 boxplot(data.frame(log2(a$Eb)), col = c(1,2,3), group = targets$run, outline = FALSE, main = "Bkgd by run", ylab = "log2 bkgd")
 ```
 
-If we color by "strain", then we can see that AB (black), TU (red), or WIK (green) run aren't unequally affected by background spread.
+If we color by "strain", then we can see that control (black), PCB (red), or vehicle (green) treatments aren't unequally affected by background spread.
 
-```{r}
+```{r bkgd by treatment}
 boxplot(data.frame(log2(a$Eb)), col = c(1,2,3), group = targets$treatment, outline = FALSE, main = "Bkgd by treatment", ylab = "log2 bkgd")
 ```
 
 ### Spatial heterogeneity
 
-```{r}
-imageplot(log2(a$Eb[,1]),a$printer)
+Don't think we really have to worry about this, because we have commercially produced arrays, but this shows the spatial hetergenetiy of the background intensities for each array.
+
+```{r spatial heterogenetiy}
+imageplot(log2(a$Eb[,1]), a$printer)
 ```
 
+## Pre-processing Data
+
+### Background correction
+
+There is a dearth of literature on what is the correct way to background normalize arrays. Default is to subtract the background intensity from the foreground intensity at each spot. the backgroundCorrect function has several options. First you define your EListRaw, then choose a method, whether or not to add an offset (if you cannot have negative corrected intensities), add your printer info, and clarify the method if you are using normexp. The options for methods include "auto", "none", "subtract", "half", "minimum", "movingmin", "edwards" or "normexp".  
+  \
+auto == subtract  
+none == none  
+subtract = the background intensities are subtracted from the foreground intensities  
+half = any intensity which is less than 0.5 after background subtraction is reset to be equal to 0.5  
+minimum = any intensity which is zero or negative after background subtraction is set equal to half the minimum of the positive corrected intensities for that array  
+movingmin = the background estimates are replaced with the minimums of the backgrounds of the spot and its eight neighbors, i.e., the background is replaced by a moving minimum of 3x3 grids of spots  
+edwards = a log-linear interpolation method is used to adjust lower intensities  
+normexp = a convolution of normal and exponential distributions is fitted to the foreground intensities using the background intensities as a covariate, and the expected signal given the observed foreground becomes the corrected intensity. This results in a smooth monotonic transformation of the background subtracted intensities such that all the corrected intensities are positive  
+  \
+The normexp function uses maximum likelihood estimation to fit the normexp model to background-corrected intensities. The model assumes that the observed intensities are the sum of background and signal components, the background being normal and the signal being exponential distributed. It also has it's own parameters to choose from:  
+saddle =  the saddle-point approximation to maximum likelihood  
+mle = exact maximum likelihood  
+rma = the background correction algorithm from the RMA-algorithm for Affymetrix microarray data as implemented in the affy package  
+rma75 =  the RMA-75 method from McGee and Chen (2006)  
+In practice "mle" performs well and is nearly as fast as "saddle", but "saddle" is the default for backward compatibility. 
+  \
+I need to choose which background correction algorythm to apply to my dataset. Let's start by trying them all!
+
+```{r background correction}
+b.none <- backgroundCorrect(RG = a,  method = "none", offset = 0, printer = a$printer)
+b.subtract <- backgroundCorrect(RG = a, method = "subtract", offset = 0, printer = a$printer)
+b.half <- backgroundCorrect(RG = a,  method = "half", offset = 0, printer = a$printer)
+b.minimum <- backgroundCorrect(RG = a,  method = "minimum", offset = 0, printer = a$printer)
+b.movingmin <- backgroundCorrect(RG = a,  method = "movingmin", offset = 0, printer = a$printer)
+b.edwards <- backgroundCorrect(RG = a,  method = "edwards", offset = 0, printer = a$printer)
+b.normexp.saddle <- backgroundCorrect(RG = a,  method = "normexp", offset = 0, printer = a$printer, normexp.method = "saddle", verbose = FALSE)
+b.normexp.mle <- backgroundCorrect(RG = a,  method = "normexp", offset = 0, printer = a$printer, normexp.method = "mle", verbose = FALSE)
+```
+And we can then plot them all side by side.
+```{r background comparisons}
+par(mfrow=c(3,3))
+plotMD(b.none, legend = FALSE, main = "none", cex = 0.1)
+plotMD(b.subtract, legend = FALSE, main = "subtract", cex = 0.1)
+plotMD(b.half, legend = FALSE, main = "half", cex = 0.1)
+plotMD(b.minimum, legend = FALSE, main = "minimum", cex = 0.1)
+plotMD(b.movingmin, legend = FALSE, main = "movingmin", cex = 0.1)
+plotMD(b.edwards, legend = FALSE, main = "edwards", cex = 0.1)
+plotMD(b.normexp.saddle, legend = FALSE, main = "normexp.saddle", cex = 0.1)
+plotMD(b.normexp.mle, legend = FALSE, main = "normexp.mle", cex = 0.1)
+```
+Can't really tell the difference at this stage...
 

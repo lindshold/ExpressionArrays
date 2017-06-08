@@ -117,6 +117,7 @@ dim(a)
 colnames(a)
 ```
 
+<<<<<<< HEAD
 ### Reading probe annotation
 
 a$genes had a ProbeID vector, but it only contains numbers at this point. We want to add human-readable probe IDs. These are found in the .gal file provided in the Agilent design file (026437). I dragged and dropped the .gal file into my directory.
@@ -137,6 +138,8 @@ names(a$printer)
 ```
 
 
+=======
+>>>>>>> 44405a2ca24ce3a41daa12d5bf1b4667c67706ea
 ### Assign spot types
 
 The SpotType file allows you to identify spots when visualizing sampels on plots to assess sample quality. First load the file, see what it contains, then assign the status of each spot on the array.
@@ -148,6 +151,7 @@ names(spottypes)
 a$genes$Status <- controlStatus(spottypes, a)
 ```
 
+<<<<<<< HEAD
 ## Quality Assessment
 
 ### Visualize on an MA-plot
@@ -179,4 +183,12 @@ boxplot(data.frame(log2(a$Eb)), col = c(1,2,3), group = targets$treatment, outli
 #imageplot(log2(a$Eb[,1]),a$printer)
 ```
 
+=======
+### Visualize on an MA-plot
+
+For single channel data objects, a between-array MD-plot is produced. An articifial array is produced by averaging all the arrays other than the array specified. A mean-difference plot is then producing from the specified array and the artificial array. Note that this procedure reduces to an ordinary mean-difference plot when there are just two arrays total.
+
+plotMD(a, legend = FALSE)
+plotMA3by2(a)
+>>>>>>> 44405a2ca24ce3a41daa12d5bf1b4667c67706ea
 
